@@ -8,13 +8,14 @@ from errbot.core import ErrBot
 import config_template
 from lib import ApproveHelper, create_sdm_service, PollerHelper, \
     ShowResourcesHelper, ShowRolesHelper, ResourceGrantHelper, RoleGrantHelper, \
-    SlackPlatform, MSTeamsPlatform
+    SlackPlatform, MSTeamsPlatform, ShowProfileHelper
 
 ACCESS_REGEX = r"\*{0,2}access to (.+)"
 APPROVE_REGEX = r"\*{0,2}yes (.+)"
 ASSIGN_ROLE_REGEX = r"\*{0,2}access to role (.+)"
 SHOW_RESOURCES_REGEX = r"\*{0,2}show available resources\*{0,2}"
 SHOW_ROLES_REGEX = r"\*{0,2}show available roles\*{0,2}"
+SHOW_USER_PROFILE_REGEX = r"show my profile"
 FIVE_SECONDS = 5
 ONE_MINUTE = 60
 
@@ -117,6 +118,14 @@ class AccessBot(BotPlugin):
             return
         yield from self.get_show_roles_helper().execute(message)
 
+    #pylint: disable=unused-argument
+    @re_botcmd(pattern=SHOW_USER_PROFILE_REGEX, flags=re.IGNORECASE, prefixed=False, re_cmd_name_help="show my profile")
+    def show_my_profile(self, message, match):
+        """
+        Show sender user's profile
+        """
+        yield from self.get_show_profile_helper().execute(message)
+
     @staticmethod
     def get_admins():
         return os.getenv("SDM_ADMINS", "").split(" ")
@@ -149,6 +158,9 @@ class AccessBot(BotPlugin):
 
     def get_show_roles_helper(self):
         return ShowRolesHelper(self)
+
+    def get_show_profile_helper(self):
+        return ShowProfileHelper(self)
 
     def get_admin_ids(self):
         return self._platform.get_admin_ids()
